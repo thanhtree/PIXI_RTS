@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="js/pixi2.min.js"></script>
+    <script>
+        let app;
+        let player;
+        let keys = {};
+        let keysDiv;
+
+        let playerSheet = {};
+        let frames = [];
+        let speed = 1;
+
+        // 0 = standing, 1 = walking, 2 = attacking
+        let spriteAction = 0; 
+
+        // 0 = up, 1 = left, 2 = down, 3 = right
+        let spriteDirection = 0;
+
+        window.onload = function() {
+            app = new PIXI.Application(
+                {
+                    width: 800,
+                    height: 800,
+                    backgroundColor: 0xAAAAAA
+                }  
+            );
+            document.body.appendChild(app.view);
+
+            app.loader.add("SpearGuard", "images/SpearGuard.png");
+            app.loader.load(doneLoading);
+
+    
+            //keyboard event listener 
+            window.addEventListener("keydown", keysDown);
+            window.addEventListener("keyup", keysUp);
+
+            keysDiv = document.querySelector("#keys");
+        }
+
+        function doneLoading(e) { 
+            createPlayerSheet();
+            createPlayer();
+            app.ticker.add(gameLoop);
+        }
+
+        function createPlayerSheet() {
+
+
+            for (let i = 0; i < 272; i++) {
+                let val;
+
+                if (i < 10){
+                    val = "00" + i;
+                } 
+                else if (i >= 10 && i < 100){
+                    val = "0" + i;
+                } else {
+                    val = i;
+                }
+                let texture = PIXI.Texture.from("images/Roman_Heavy_Spear/tile" + val + ".png");
+                
+                frames.push(texture);
+            }
+            
+
+            playerSheet["standUp"] = frames.slice(104, 105);
+            playerSheet["standLeft"] = frames.slice(117, 118);
+            playerSheet["standDown"] = frames.slice(130, 131);
+            playerSheet["standRight"] = frames.slice(143, 144);
+
+
+            //slice through to element +1 -> (104, 113) = 104 - 112
+            playerSheet["walkUp"] = frames.slice(104, 113);
+            playerSheet["walkLeft"] = frames.slice(117, 126);
+            playerSheet["walkDown"] = frames.slice(130, 139);
+            playerSheet["walkRight"] = frames.slice(143, 152);
+
+            playerSheet["thrustUp"] = frames.slice(52, 60);
+            playerSheet["thrustLeft"] = frames.slice(65, 73);
+            playerSheet["thrustDown"] = frames.slice(78, 86);
+            playerSheet["thrustRight"] = frames.slice(91, 99);
+        }
+
+        function createPlayer() {
+
+            player = new PIXI.AnimatedSprite(playerSheet.standDown);
+            player1 = new PIXI.AnimatedSprite(playerSheet.standDown);
+            player2 = new PIXI.AnimatedSprite(playerSheet.standDown);
+            player3 = new PIXI.AnimatedSprite(playerSheet.standDown);
+
+            spriteDirection = 2;
+            spriteAction = 0;
+
+            player.anchor.set(0.5);
+            player.animationSpeed = .15;
+            player.loop = false; 
+            player.x = app.view.width / 2;
+            player.y = app.view.height / 2; 
+            app.stage.addChild(player); 
+            player.play();
+
+            // Additional Players
+            player1.anchor.set(0.5);
+            player1.animationSpeed = .15;
+            player1.loop = false; 
+            player1.x = (app.view.width / 2) + 64;
+            player1.y = app.view.height / 2; 
+            app.stage.addChild(player1); 
+            player1.play();
+
+            player2.anchor.set(0.5);
+            player2.animationSpeed = .15;
+            player2.loop = false; 
+            player2.x = (app.view.width / 2) - 64;
+            player2.y = app.view.height / 2; 
+            app.stage.addChild(player2); 
+            player2.play();
+            
+            player3.anchor.set(0.5);
+            player3.animationSpeed = .15;
+            player3.loop = false; 
+            player3.x = app.view.width / 2;
+            player3.y = (app.view.height / 2) + 64; 
+            app.stage.addChild(player3); 
+            player3.play();
+        }
+
+        function keysDown(e) {
+            keys[e.keyCode] = true;
+        }
+
+        function keysUp(e) {
+            //spriteDirectionStop(); 
+            keys[e.keyCode] = false;
+
+            if (spriteAction == 1){
+                player.gotoAndStop(0);
+
+                //Extra Players
+                player1.gotoAndStop(0);
+                player2.gotoAndStop(0);
+                player3.gotoAndStop(0);
+            }
+            spriteAction = 0;
+        }
+
+        function gameLoop() {
+            keysDiv.innerHTML = JSON.stringify(keys);
+
+            // W
+            if(keys["87"]) {
+                if (!player.playing) {
+                    player.textures = playerSheet.walkUp;
+                    player.play();
+
+                    //Extra Players
+                    player1.textures = playerSheet.walkUp;
+                    player1.play();
+                    player2.textures = playerSheet.walkUp;
+                    player2.play();
+                    player3.textures = playerSheet.walkUp;
+                    player3.play();
+                }
+
+                spriteDirection = 0;
+                spriteAction = 1; 
+                player.y -= speed;
+
+                //Extra Players
+                player1.y -= speed;
+                player2.y -= speed;
+                player3.y -= speed;
+            }
+            // A
+            if(keys["65"]) {
+                if (!player.playing) {
+                    player.textures = playerSheet.walkLeft;
+                    player.play();
+
+                    player1.textures = playerSheet.walkLeft;
+                    player1.play();
+                    player2.textures = playerSheet.walkLeft;
+                    player2.play();
+                    player3.textures = playerSheet.walkLeft;
+                    player3.play();
+                }
+
+                spriteDirection = 1;
+                spriteAction = 1; 
+                player.x -= speed;
+
+                //Extra Players
+                player1.x -= speed;
+                player2.x -= speed;
+                player3.x -= speed;
+            }
+            // S
+            if(keys["83"]) {
+                if (!player.playing) {
+                    player.textures = playerSheet.walkDown;
+                    player.play()
+
+                    player1.textures = playerSheet.walkDown;
+                    player1.play();
+                    player2.textures = playerSheet.walkDown;
+                    player2.play();
+                    player3.textures = playerSheet.walkDown;
+                    player3.play();
+                }
+
+                spriteDirection = 2;
+                spriteAction = 1; 
+                player.y += speed;
+
+                //Extra Players
+                player1.y += speed;
+                player2.y += speed;
+                player3.y += speed;
+            }
+            // D
+            if(keys["68"]) {
+                if (!player.playing) {
+                    player.textures = playerSheet.walkRight;
+                    player.play();
+
+                    player1.textures = playerSheet.walkRight;
+                    player1.play();
+                    player2.textures = playerSheet.walkRight;
+                    player2.play();
+                    player3.textures = playerSheet.walkRight;
+                    player3.play();
+                }
+
+                spriteDirection = 3;
+                spriteAction = 1; 
+                player.x += speed;
+
+                //Extra Players
+                player1.x += speed;
+                player2.x += speed;
+                player3.x += speed;
+            }
+
+            // Space
+            if (keys["32"]) {
+                if(!player.playing){
+                    switch (spriteDirection) {
+                    case 0:
+                        player.textures = playerSheet.thrustUp;
+
+                        //Extra Players
+                        player1.textures = playerSheet.thrustUp;
+                        player2.textures = playerSheet.thrustUp;
+                        player3.textures = playerSheet.thrustUp;
+                        break;
+                    case 1:
+                        player.textures = playerSheet.thrustLeft;
+
+                        //Extra Players
+                        player1.textures = playerSheet.thrustLeft;
+                        player2.textures = playerSheet.thrustLeft;
+                        player3.textures = playerSheet.thrustLeft;
+                        break;
+                    case 2:
+                        player.textures = playerSheet.thrustDown;
+
+                        //Extra Players
+                        player1.textures = playerSheet.thrustDown;
+                        player2.textures = playerSheet.thrustDown;
+                        player3.textures = playerSheet.thrustDown;
+                        break;
+                    default: 
+                        player.textures = playerSheet.thrustRight;
+
+                        //Extra Players
+                        player1.textures = playerSheet.thrustRight;
+                        player2.textures = playerSheet.thrustRight;
+                        player3.textures = playerSheet.thrustRight;
+                    }
+                player.play();
+
+                //Extra Players
+                player1.play();
+                player2.play();
+                player3.play();
+                }
+
+                spriteAction = 2;
+            }
+        }
+
+    </script>
+</head>
+<body>
+<div id="keys"></div>
+</body>
+</html>
